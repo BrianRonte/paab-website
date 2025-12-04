@@ -2,12 +2,24 @@
 
 ARG PHP_VERSION=8.2
 ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-slim as node_build
+
+WORKDIR /app
+COPY package*.json ./
+COPY vite.config.js ./
+COPY postcss.config.js ./
+COPY resources ./resources
+COPY public ./public
+
+RUN npm install
+RUN npm run build
+
+# PHP Base
 FROM ubuntu:22.04 as base
 LABEL fly_launch_runtime="laravel"
 
-# PHP_VERSION needs to be repeated here
-# See https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PHP_VERSION
+ARG PHP_VERSION=8.2
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
@@ -25,8 +37,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PHP_UPLOAD_MAX_FILE_SIZE=100M \
     PHP_ALLOW_URL_FOPEN=Off
 
-# Prepare base container: 
-# 1. Install PHP, Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY .fly/php/ondrej_ubuntu_php.gpg /etc/apt/trusted.gpg.d/ondrej_ubuntu_php.gpg
 ADD .fly/php/packages/${PHP_VERSION}.txt /tmp/php-packages.txt
@@ -44,85 +54,35 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# 2. Copy config files to proper locations
 COPY .fly/nginx/ /etc/nginx/
 COPY .fly/fpm/ /etc/php/${PHP_VERSION}/fpm/
 COPY .fly/supervisor/ /etc/supervisor/
 COPY .fly/entrypoint.sh /entrypoint
 COPY .fly/start-nginx.sh /usr/local/bin/start-nginx
 RUN chmod 754 /usr/local/bin/start-nginx
-    
-# 3. Copy application code, skipping files based on .dockerignore
-COPY . /var/www/html
+
 WORKDIR /var/www/html
 
-# Ensure Laravel writable dirs exist BEFORE composer scripts run
+# Copy application code
+COPY . /var/www/html
+
+# Copy built assets from node stage
+COPY --from=node_build /app/public/build /var/www/html/public/build
+
+# Create necessary directories
 RUN mkdir -p bootstrap/cache \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
-    && chown -R www-data:www-data bootstrap/cache storage \
-    && chmod -R 775 bootstrap/cache storage
+    && mkdir -p database \
+    && touch database/database.sqlite \
+    && chown -R www-data:www-data bootstrap/cache storage database \
+    && chmod -R 775 bootstrap/cache storage database
 
+# Install PHP dependencies
+RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-# 4. Setup application dependencies 
-# Install PHP deps WITHOUT running artisan scripts during build
-RUN composer install --optimize-autoloader --no-dev --no-scripts \
-    && chown -R www-data:www-data /var/www/html
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
 
-
-
-# RUN composer install --optimize-autoloader --no-dev \
-#     && mkdir -p bootstrap/cache \
-#     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
-#     && chown -R www-data:www-data storage bootstrap/cache \
-#     && chmod -R 775 storage bootstrap/cache
-
-
-
-
-
-# Multi-stage build: Build static assets
-# This allows us to not include Node within the final container
-# FROM node:${NODE_VERSION} as node_modules_go_brrr
-
-RUN mkdir /app
-
-RUN mkdir -p  /app
-WORKDIR /app
-COPY . .
-COPY --from=base /var/www/html/vendor /app/vendor
-
-# Use yarn or npm depending on what type of
-# lock file we might find. Defaults to
-# NPM if no lock file is found.
-# Note: We run "production" for Mix and "build" for Vite
-ENV NODE_ENV=development
-
-RUN if [ -f "package-lock.json" ]; then \
-        npm ci --no-audit --include=dev; \
-    else \
-        npm install; \
-    fi
-
-# Build assets (force vite via npx so it's found)
-RUN if [ -f "vite.config.js" ] || [ -f "vite.config.ts" ]; then \
-        npx vite build; \
-    else \
-        npm run production; \
-    fi
-# From our base container created above, we
-# create our final image, adding in static
-# assets that we generated above
-FROM base
-
-# Packages like Laravel Nova may have added assets to the public directory
-# or maybe some custom assets were added manually! Either way, we merge
-# in the assets we generated above rather than overwrite them
-# COPY --from=node_modules_go_brrr /app/public /var/www/html/public-npm
-# RUN rsync -ar /var/www/html/public-npm/ /var/www/html/public/ \
-#     && rm -rf /var/www/html/public-npm \
-#     && chown -R www-data:www-data /var/www/html
-
-# 5. Setup Entrypoint
 EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint"]

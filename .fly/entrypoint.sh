@@ -1,14 +1,47 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-# Run user scripts, if they exist
-for f in /var/www/html/.fly/scripts/*.sh; do
-    # Bail out this loop if any script exits with non-zero status code
-    bash "$f" -e
-done
+cd /var/www/html
 
-if [ $# -gt 0 ]; then
-    # If we passed a command, run it as root
-    exec "$@"
-else
-    exec supervisord -c /etc/supervisor/supervisord.conf
+echo "Starting PAAB Website..."
+
+# Create SQLite database if it doesn't exist
+if [ ! -f /var/www/html/database/database.sqlite ]; then
+    echo "Creating SQLite database..."
+    touch /var/www/html/database/database.sqlite
+    chmod 664 /var/www/html/database/database.sqlite
+    chown www-data:www-data /var/www/html/database/database.sqlite
 fi
+
+# Ensure correct permissions on storage
+echo "Setting permissions..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Ensure database directory is writable
+chown -R www-data:www-data /var/www/html/database
+chmod -R 775 /var/www/html/database
+
+# Clear old caches
+echo "Clearing caches..."
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+
+# Run migrations
+echo "Running migrations..."
+php artisan migrate --force
+
+# Create storage symlink
+echo "Creating storage link..."
+php artisan storage:link --force
+
+# Cache configuration for production
+echo "Caching configuration..."
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+echo "Starting services..."
+# Start supervisor (nginx + php-fpm)
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

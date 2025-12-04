@@ -64,14 +64,9 @@ RUN mkdir -p bootstrap/cache \
 
 
 # 4. Setup application dependencies 
-RUN composer install --optimize-autoloader --no-dev \
-    && php artisan optimize:clear \
-    && chown -R www-data:www-data /var/www/html \
-    && echo "MAILTO=\"\"\n* * * * * www-data /usr/bin/php /var/www/html/artisan schedule:run" > /etc/cron.d/laravel \
-    && sed -i '/->withMiddleware(function (Middleware \$middleware) {/a\
-        \$middleware->trustProxies(at: "*");\
-    ' bootstrap/app.php \
-    && if [ -d .fly ]; then cp .fly/entrypoint.sh /entrypoint; chmod +x /entrypoint; fi
+# Install PHP deps WITHOUT running artisan scripts during build
+RUN composer install --optimize-autoloader --no-dev --no-scripts \
+    && chown -R www-data:www-data /var/www/html
 
 
 

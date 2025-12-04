@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+    --color-paab-navy: #1a2e4c;
+    --color-paab-gold: #c9a227;
+    --color-paab-gold-light: #d4b84a;
+    --color-paab-blue: #2c4a7c;
+    --color-paab-light: #f8f9fa;
+    
+    --font-display: "Playfair Display", serif;
+    --font-body: "Source Sans 3", sans-serif;
+}
+
+/* Custom utility classes - outside of @theme */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Hide scrollbar for filter buttons */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Fallback for missing background images */
+.bg-header-fallback {
+    background: linear-gradient(135deg, #1a2e4c 0%, #2c4a7c 50%, #1a2e4c 100%);
+}

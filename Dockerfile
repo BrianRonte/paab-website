@@ -56,18 +56,23 @@ RUN chmod 754 /usr/local/bin/start-nginx
 COPY . /var/www/html
 WORKDIR /var/www/html
 
+# Ensure Laravel writable dirs exist BEFORE composer scripts run
+RUN mkdir -p bootstrap/cache \
+    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
+    && chown -R www-data:www-data bootstrap/cache storage \
+    && chmod -R 775 bootstrap/cache storage
+
+
 # 4. Setup application dependencies 
 RUN composer install --optimize-autoloader --no-dev \
-    && mkdir -p bootstrap/cache \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
     && php artisan optimize:clear \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 bootstrap/cache storage \
     && echo "MAILTO=\"\"\n* * * * * www-data /usr/bin/php /var/www/html/artisan schedule:run" > /etc/cron.d/laravel \
     && sed -i '/->withMiddleware(function (Middleware \$middleware) {/a\
         \$middleware->trustProxies(at: "*");\
     ' bootstrap/app.php \
     && if [ -d .fly ]; then cp .fly/entrypoint.sh /entrypoint; chmod +x /entrypoint; fi
+
 
 
 # RUN composer install --optimize-autoloader --no-dev \

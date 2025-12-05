@@ -4,7 +4,7 @@
 #
 
 app = 'paab-website'
-primary_region = 'jnb'
+primary_region = 'lhr'
 
 [build]
 
@@ -14,7 +14,7 @@ primary_region = 'jnb'
   LOG_CHANNEL = "stderr"
   LOG_LEVEL = "error"
   DB_CONNECTION = "sqlite"
-  DB_DATABASE = "/var/www/html/database/database.sqlite"
+  DB_DATABASE = "/data/database.sqlite"
   SESSION_DRIVER = "file"
   CACHE_STORE = "file"
 
@@ -32,6 +32,6 @@ primary_region = 'jnb'
   cpus = 1
 
 [[mounts]]
-  source = "paab_data"
-  destination = "/var/www/html/database"
+  source = "data"
+  destination = "/data"
   processes = ["app"]

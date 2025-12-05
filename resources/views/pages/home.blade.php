@@ -261,7 +261,7 @@
                         <!-- Image -->
                         <a href="{{ route('news.show', $article->slug) }}" class="block relative h-48 overflow-hidden">
                             @if($article->featured_image)
-                                <img src="{{ asset('storage/' . $article->featured_image) }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <img src="{{ asset('storage/news/' . $article->featured_image) }}" alt="{{ $article->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full bg-gradient-to-br from-paab-navy to-paab-blue flex items-center justify-center">
                                     <i class="fas fa-newspaper text-paab-gold text-4xl opacity-50"></i>

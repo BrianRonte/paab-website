@@ -45,3 +45,6 @@ php artisan view:cache
 echo "Starting services..."
 # Start supervisor (nginx + php-fpm)
 exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+
+

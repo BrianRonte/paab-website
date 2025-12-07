@@ -203,7 +203,7 @@
                                 <i class="fas fa-cloud-upload-alt text-gray-400 text-xl"></i>
                             </div>
                             <p class="text-gray-600 text-sm">{{ $news->featured_image ? 'Click to replace image' : 'Click to upload image' }}</p>
-                            <p class="text-gray-400 text-xs mt-1">PNG, JPG up to 7MB</p>
+                            <p class="text-gray-400 text-xs mt-1">PNG, JPG up to 2MB</p>
                         </div>
                     </label>
                 </div>

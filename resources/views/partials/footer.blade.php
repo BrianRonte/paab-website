@@ -4,15 +4,21 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             <!-- About -->
             <div>
-                <div class="flex items-center mb-6">
+                <div class="flex items-center mb-6">     
+                <a href="{{ url('/') }}" class="flex items-center space-x-3 group">
+                @if(file_exists(public_path('images/logo/paab-logo.png')))
+                    <img src="{{ asset('images/logo/paab-logo.png') }}" alt="PAAB Logo" class="h-12 w-auto">
+                @else
                     <div class="w-12 h-12 bg-paab-gold rounded-xl flex items-center justify-center mr-3">
                         <span class="text-paab-navy font-display font-bold text-xl">P</span>
                     </div>
+                @endif
                     <div>
                         <h3 class="font-display font-bold text-lg">PAAB</h3>
                         <p class="text-gray-400 text-xs">Zimbabwe</p>
                     </div>
-                </div>
+            </div>
+
                 <p class="text-gray-400 text-sm leading-relaxed mb-6">
                     The Public Accountants and Auditors Board regulates the accountancy profession in Zimbabwe, ensuring the highest standards of practice and professional conduct.
                 </p>

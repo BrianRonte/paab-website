@@ -28,9 +28,6 @@ Route::prefix('services')->group(function () {
     Route::get('/verify-practitioner', [FirmController::class, 'verify'])->name('services.verify-practitioner');
 });
 
-// API for AJAX search (optional for future use)
-Route::get('/api/verify', [FirmController::class, 'search'])->name('api.verify');
-
 
 // Standards
 Route::get('/standards', [PageController::class, 'standards'])->name('standards');
@@ -44,10 +41,18 @@ Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 
 // Contact
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
-Route::post('/contact', [PageController::class, 'contactSubmit'])->name('contact.submit');
+Route::post('/contact', [PageController::class, 'contactSubmit'])
+    ->middleware('throttle:5,1')
+    ->name('contact.submit');
 
 // Verification API (for AJAX search)
-Route::get('/api/verify', [FirmController::class, 'search'])->name('api.verify');
+phpRoute::get('/verify-practitioner', [FirmController::class, 'verify'])
+    ->middleware('throttle:30,1')
+    ->name('services.verify-practitioner');
+
+Route::get('/api/verify', [FirmController::class, 'search'])
+    ->middleware('throttle:30,1')
+    ->name('api.verify');
 
 
 // =============================================
@@ -63,7 +68,7 @@ Route::get('/dashboard', function () {
 // ADMIN ROUTES (Protected)
 // =============================================
 
-Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     // Admin Dashboard
     Route::get('/', function () {
         return redirect()->route('admin.news.index');

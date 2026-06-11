@@ -27,4 +27,5 @@ Thumbs.db
 *.key
 *.crt
 *.p12
-*.pfx
+*.pfxdatabase/*.sqlite
+database/*.sqlite-journal

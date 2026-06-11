@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\News;
 use Illuminate\Http\Request;
+use App\Models\ContactMessage;
+use App\Mail\ContactFormSubmitted;
+use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -97,18 +100,37 @@ class PageController extends Controller
      * Handle contact form submission
      */
     public function contactSubmit(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email',
-            'phone' => 'nullable|max:50',
-            'subject' => 'required|max:255',
-            'message' => 'required|max:5000',
-        ]);
+{
+    $validated = $request->validate([
+        'name'         => 'required|string|max:255',
+        'email'        => 'required|email|max:255',
+        'phone'        => 'nullable|string|max:50',
+        'inquiry_type' => 'nullable|string|max:100',
+        'subject'      => 'required|string|max:255',
+        'message'      => 'required|string|max:5000',
+        'privacy'      => 'accepted',
+    ]);
 
-        // TODO: Send email or save to database
-        // For now, just redirect with success message
+    // Source of truth — always saved
+    $contact = ContactMessage::create([
+        'name'         => $validated['name'],
+        'email'        => $validated['email'],
+        'phone'        => $validated['phone'] ?? null,
+        'inquiry_type' => $validated['inquiry_type'] ?? null,
+        'subject'      => $validated['subject'],
+        'message'      => $validated['message'],
+        'ip_address'   => $request->ip(),
+    ]);
 
-        return redirect()->route('contact')->with('success', 'Thank you for your message. We will get back to you soon!');
+    // Best-effort notification — a mail failure must not lose the message
+    try {
+        Mail::to('info@paab.org.zw')->send(new ContactFormSubmitted($contact));
+    } catch (\Throwable $e) {
+        report($e);
     }
+
+    return redirect()->route('contact')
+        ->with('success', 'Thank you for your message. We will get back to you soon!');
+}
+
 }

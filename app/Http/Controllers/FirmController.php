@@ -44,6 +44,7 @@ class FirmController extends Controller
                     $q->where('category', $category);
                 })
                 ->orderBy('name')
+                ->take(50)
                 ->get();
             }
         }
@@ -170,7 +171,7 @@ class FirmController extends Controller
             'registration_date' => 'nullable|date',
             'expiry_date' => 'nullable|date',
             'services' => 'nullable|array',
-            'logo' => 'nullable|image|max:1024',
+            'logo' => 'nullable|mimes:jpg,jpeg,png,webp|max:1024',
             'is_featured' => 'nullable|boolean',
         ]);
 
@@ -214,7 +215,7 @@ class FirmController extends Controller
             'registration_date' => 'nullable|date',
             'expiry_date' => 'nullable|date',
             'services' => 'nullable|array',
-            'logo' => 'nullable|image|max:1024',
+            'logo' => 'nullable|mimes:jpg,jpeg,png,webp|max:1024',
             'is_featured' => 'nullable|boolean',
         ]);
 

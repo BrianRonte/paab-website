@@ -25,9 +25,10 @@ Route::prefix('services')->group(function () {
     Route::get('/registration', [PageController::class, 'servicesRegistration'])->name('services.registration');
     Route::get('/licensing', [PageController::class, 'servicesLicensing'])->name('services.licensing');
     Route::get('/practice-review', [PageController::class, 'servicesPracticeReview'])->name('services.practice-review');
-    Route::get('/verify-practitioner', [FirmController::class, 'verify'])->name('services.verify-practitioner');
+    Route::get('/verify-practitioner', [FirmController::class, 'verify'])
+        ->middleware('throttle:30,1')
+        ->name('services.verify-practitioner');
 });
-
 
 // Standards
 Route::get('/standards', [PageController::class, 'standards'])->name('standards');
@@ -46,10 +47,6 @@ Route::post('/contact', [PageController::class, 'contactSubmit'])
     ->name('contact.submit');
 
 // Verification API (for AJAX search)
-Route::get('/verify-practitioner', [FirmController::class, 'verify'])
-    ->middleware('throttle:30,1')
-    ->name('services.verify-practitioner');
-
 Route::get('/api/verify', [FirmController::class, 'search'])
     ->middleware('throttle:30,1')
     ->name('api.verify');

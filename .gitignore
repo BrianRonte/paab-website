@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# secrets / keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx

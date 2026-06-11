@@ -46,7 +46,7 @@ Route::post('/contact', [PageController::class, 'contactSubmit'])
     ->name('contact.submit');
 
 // Verification API (for AJAX search)
-phpRoute::get('/verify-practitioner', [FirmController::class, 'verify'])
+Route::get('/verify-practitioner', [FirmController::class, 'verify'])
     ->middleware('throttle:30,1')
     ->name('services.verify-practitioner');
 
